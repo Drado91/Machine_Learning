@@ -2,17 +2,17 @@ import numpy as np
 from numpy.linalg import inv
 import math as m
 K=3                                                                            #K = Number of gaussians
-M=900                                                                          #M = Number of training-data
+M=1000                                                                          #M = Number of training-data
 
 theta_real=[[0 for x in range (K)] for y in range (3)]                         #from theta real we generate the 2D data points
-theta_real[0][0:] = 0.3, (0,0), [[0.5,0], [0,0.5]]
-theta_real[1][0:] = 0.3, (2,-2), [[0.5,0], [0,0.5]]
-theta_real[2][0:] = (1-theta_real[0][0]-theta_real[1][0]), (-3,3), [[0.5,0],[0,0.5]]
+theta_real[0][0:] = 0.1, (1,1), [[1,0], [0,1]]
+theta_real[1][0:] = 0.4, (0,0), [[1,0], [0,1]]
+theta_real[2][0:] = (1-theta_real[0][0]-theta_real[1][0]), (1,-1), [[0.5,0],[0,0.5]]
 
 theta=[[0 for x in range (K)] for y in range (3)]                              #prob,mean(x,y),cov
-theta[0][0:] = 0.35, (0.5,0.5), [[1,0], [0,1]]
-theta[1][0:] = 0.25, (2.7,-2.7), [[0.8,0], [0,0.8]]
-theta[2][0:] = (1-theta[0][0]-theta[1][0]), (-3.5,2.5), [[1,0],[0,1]]          #"theta fill in with values, for large K can replace with for loop and random"
+theta[0][0:] = 0.2, (1.5,0.8), [[1,0], [0,1]]
+theta[1][0:] = 0.35, (0.5,-0.5), [[1,0], [0,1]]
+theta[2][0:] = (1-theta[0][0]-theta[1][0]), (0.7,-2), [[0.6,0],[0,0.6]]          #"theta fill in with values, for large K can replace with for loop and random"
 
 Z=np.random.choice(K, M, p=[theta_real[0][0], theta_real[1][0], theta_real[2][0]])+1           #"generates 'M' size random vector with values 1:'K' with the probabilities "
 x_y=np.zeros([M,2])                                                            #Create list with M lines, each is ndarray size of 2 of x,y.
@@ -71,21 +71,26 @@ def K_Means(K,M,theta,x_y,num_iter):
         for j in range(K):
             m[0][j]=sum[0][j]/cnt[0][j]
             m[1][j]=sum[1][j]/cnt[0][j]
+        Success_Rate(label_Kmeans, Z, itr, 0)
     return
 def GMM(K,M,theta,x_y,w,num_iter):
     for i in range(num_iter):
         Expectation_step(K, M, theta, x_y, w)
         Maximization_step(K, M, w, theta)
-    for i in range(M):
-        label_GMM[0][i] = int(np.argmax(w[i]) + 1)
+        for l in range(M):
+             label_GMM[0][l] = int(np.argmax(w[l]) + 1)
+        Success_Rate(label_GMM, Z, i, 1)
     return
-def Success_Rate(label,Z,iter):
-    sccs=(len(Z)-np.count_nonzero(label-Z))/len(Z)*100
-    print('The success rate of GMM at the')
-x_y = rand_2D(M,Z,theta,x_y)
-num_iter=10
-GMM(K,M,Z,theta,x_y,w,num_iter)
-K_Means(K,M,theta,x_y,num_iter)
+def Success_Rate(label,Z,iter,flag):
+    if flag == 0:
+        sccs1 = (len(Z) - np.count_nonzero(label - Z)) / len(Z) * 100
+        print("The success rate of K-Means in the {} iteration is: {}".format(iter+1, sccs1))
+    if flag==1:
+        sccs = (len(Z)-np.count_nonzero(label-Z))/len(Z)*100
+        print("The success rate of GMM in the {} iteration is: {}".format(iter+1, sccs))
 
-#print(sum(np.bitwise_xor(pred_label.reshape(-1,1),Z.T)))
+x_y = rand_2D(M,Z,theta,x_y)
+num_iter=50
+K_Means(K,M,theta,x_y,num_iter)
+GMM(K,M,theta,x_y,w,num_iter)
 print('x')
